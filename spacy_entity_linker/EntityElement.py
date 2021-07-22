@@ -13,12 +13,12 @@ class EntityElement:
             self.label = row[1]
         if len(row) > 2:
             self.description = row[2]
+        # if len(row) > 3 and row[3]:
+        #     self.prior = row[3]
+        # if len(row) > 4 and row[4]:
+        #     self.in_degree = row[4]
         if len(row) > 3 and row[3]:
-            self.prior = row[3]
-        if len(row) > 4 and row[4]:
-            self.in_degree = row[4]
-        if len(row) > 5 and row[5]:
-            self.original_alias = row[5]
+            self.original_alias = row[3]
 
         self.url="https://www.wikidata.org/wiki/Q{}".format(self.get_id())
         self.span = span

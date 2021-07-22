@@ -1,8 +1,8 @@
-# Spacy Entity Linker
+# Spacy Canocicalizer
 
 ## Introduction
 
-Spacy Entity Linker is a pipeline for spaCy that performs Linked Entity Extraction with Wikidata on a given Document.
+Spacy Canocicalizer is a pipeline for spaCy that performs Linked Entity Extraction with Wikidata on a given Document.
 The Entity Linking System operates by matching potential candidates from each sentence
 (subject, object, prepositional phrase, compounds, etc.) to aliases from Wikidata. The package allows to easily find the
 category behind each entity (e.g. "banana" is type "food" OR "Microsoft" is type "company"). It can is therefore useful
@@ -140,43 +140,7 @@ in-memory access (e.g. Redis) should be used. This may be implemented in the fut
 
 ## Installation
 
-To install the package run: <code>pip install spacy-entity-linker</code>
-
-Afterwards, the knowledge base (Wikidata) must be downloaded. This can be done by calling
-
-<code>python -m spacy_entity_linker "download_knowledge_base"</code>
-
-This will download and extract a ~500mb file that contains a preprocessed version of Wikidata
-
-## Data
-the knowledge base was derived from this dataset: https://www.kaggle.com/kenshoresearch/kensho-derived-wikimedia-data
-
-It was cleaned and post-procesed, including filtering out entities of "overrepresented" categories such as
-  * village in China
-  * train stations
-  * stars in the Galaxy
-  * etc.
-  
-The purpose behind the knowledge base cleaning was to reduce the knowledge base size, while keeping the most useful entities for general purpose applications.
-
-Currently, the only way to change the knowledge base is a bit hacky and requires to replace or modify the underlying sqlite database. You will find it under <code>site_packages/data_spacy_entity_linker/wikidb_filtered.db</code>. The database contains 3 tables:
-* <b>aliases</b>
-  * en_alias (english alias)
-  * en_alias_lowercase (english alias lowercased)
-* <b>joined</b>
-  * en_label (label of the wikidata item)
-  * views (number of views of the corresponding wikipedia page (in a given period of time))
-  * inlinks (number of inlinks to the corresponding wikipedia page)
-  * item_id (wikidata id)
-  * description (description of the wikidata item)
-* <b>statements</b>
-  * source_item_id (references item_id)
-  * target_item_id (references item_id)
-  * edge_property_id
-      * 279=subclass of (https://www.wikidata.org/wiki/Property:P279)
-      * 31=instance of (https://www.wikidata.org/wiki/Property:P31)
-      * 361=part of (https://www.wikidata.org/wiki/Property:P361)
-
+To install the package run: <code>pip install spacy-canonicalizer</code>
 
 ## Versions:
 

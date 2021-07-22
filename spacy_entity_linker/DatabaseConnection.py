@@ -1,4 +1,5 @@
-import sqlite3
+import json
+import psycopg2
 import os
 
 MAX_DEPTH_CHAIN = 10
@@ -10,8 +11,6 @@ MAX_ITEMS_CACHE = 100000
 conn = None
 entity_cache = {}
 chain_cache = {}
-
-DB_DEFAULT_PATH = os.path.abspath(__file__ + '/../../data_spacy_entity_linker/wikidb_filtered.db')
 
 wikidata_instance = None
 
@@ -36,7 +35,7 @@ class WikidataQueryController:
             "name": {}
         }
 
-        self.init_database_connection()
+        self.init_database_connection(self._load_creds())
 
     def _get_cached_value(self, cache_type, key):
         return self.cache[cache_type][key]
@@ -48,8 +47,20 @@ class WikidataQueryController:
         if len(self.cache[cache_type]) < MAX_ITEMS_CACHE:
             self.cache[cache_type][key] = value
 
-    def init_database_connection(self, path=DB_DEFAULT_PATH):
-        self.conn = sqlite3.connect(path)
+    def _load_creds(self):
+        # get the credentials path from an env variable
+        credsPath = os.environ.get("c3creds")
+        if not credsPath or not os.path.isfile(credsPath):
+            raise CredentialsNotFound()
+        # load up the creds
+        with open(credsPath) as credsFile:
+            try:
+                return json.load(credsFile)["data_sources"]["wikidata"]["location"]
+            except:
+                raise InvalidCredentials("...everything", "Your c3creds file doesn't seem to be formatted correctly.")
+
+    def init_database_connection(self, path):
+        self.conn = psycopg2.connect(path)
 
     def clear_cache(self):
         self.cache["entity"].clear()
@@ -61,9 +72,10 @@ class WikidataQueryController:
         if self._is_cached("entity", alias):
             return self._get_cached_value("entity", alias).copy()
 
-        query_alias = """SELECT j.item_id,j.en_label, j.en_description,j.views,j.inlinks,a.en_alias from aliases as a
-            LEFT JOIN joined as j ON a.item_id = j.item_id
-            WHERE a.en_alias_lowercase = ? and j.item_id NOT NULL"""
+        query_alias = """select i.id, i.name, i.description, a.alias
+            from item_alias_view a
+            left join item i on a.item_id = i.id
+            where a.lowercase_alias = %s"""
 
         c.execute(query_alias, [alias.lower()])
         fetched_rows = c.fetchall()
@@ -72,11 +84,10 @@ class WikidataQueryController:
         return fetched_rows
 
     def get_instances_of(self, item_id, properties=[P_INSTANCE_OF, P_SUBCLASS], count=1000):
-        query = "SELECT source_item_id from statements where target_item_id={} and edge_property_id IN ({}) LIMIT {}".format(
-            item_id, ",".join([str(prop) for prop in properties]), count)
+        query = "select subject_id from item_relationship where object_id = %s and property_id in (%s) LIMIT %s"
 
         c = self.conn.cursor()
-        c.execute(query)
+        c.execute(query, [item_id, ','.join([str(prop) for prop in properties]), count])
 
         res = c.fetchall()
 
@@ -87,7 +98,7 @@ class WikidataQueryController:
             return self._get_cached_value("name", item_id)
 
         c = self.conn.cursor()
-        query = "SELECT en_label from joined WHERE item_id=?"
+        query = "SELECT name from item WHERE id=%s"
         c.execute(query, [item_id])
         res = c.fetchone()
 
@@ -103,30 +114,30 @@ class WikidataQueryController:
 
     def get_entity(self, item_id):
         c = self.conn.cursor()
-        query = "SELECT j.item_id,j.en_label,j.en_description,j.views,j.inlinks from joined as j " \
-                "WHERE j.item_id=={}".format(item_id)
+        query = """SELECT id, name, description from item
+                   WHERE id=%s"""
 
-        res = c.execute(query)
+        res = c.execute(query, [item_id])
 
         return res.fetchone()
 
     def get_children(self, item_id, limit=100):
         c = self.conn.cursor()
-        query = "SELECT j.item_id,j.en_label,j.en_description,j.views,j.inlinks from joined as j " \
-                "JOIN statements as s on j.item_id=s.source_item_id " \
-                "WHERE s.target_item_id={} and s.edge_property_id IN (279,31) LIMIT {}".format(item_id, limit)
+        query = """SELECT i.id, i.name, i.description from item as i
+                   JOIN item_relationship as r on i.id=r.subject_id
+                   WHERE r.object_id=%s and r.property_id IN (279,31) LIMIT %s"""
 
-        res = c.execute(query)
+        res = c.execute(query, [item_id, limit])
 
         return res.fetchall()
 
     def get_parents(self, item_id, limit=100):
         c = self.conn.cursor()
-        query = "SELECT j.item_id,j.en_label,j.en_description,j.views,j.inlinks from joined as j " \
-                "JOIN statements as s on j.item_id=s.target_item_id " \
-                "WHERE s.source_item_id={} and s.edge_property_id IN (279,31) LIMIT {}".format(item_id, limit)
+        query = """SELECT i.id, i.name, i.description from item as i
+                   JOIN item_relationship as r on i.id=r.object_id
+                   WHERE r.subject_id=%s and r.property_id IN (279,31) LIMIT %s"""
 
-        res = c.execute(query)
+        res = c.execute(query, [item_id, limit])
 
         return res.fetchall()
 
@@ -163,13 +174,12 @@ class WikidataQueryController:
 
         c = self.conn.cursor()
 
-        query = "SELECT target_item_id,edge_property_id from statements where source_item_id={} and edge_property_id IN ({})".format(
-            item_id, ",".join([str(prop) for prop in properties]))
+        query = "SELECT object_id, property_id from item_relationship where subject_id=%s and property_id IN (%s)"
 
         # set value for current item in order to prevent infinite recursion
         self._add_to_cache("chain", (item_id, max_depth), [])
 
-        for target_item in c.execute(query):
+        for target_item in c.execute(query, [item_id, ','.join([str(prop) for prop in properties])]):
 
             chain_ids = [el[0] for el in chain]
 

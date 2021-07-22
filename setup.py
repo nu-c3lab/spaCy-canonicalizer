@@ -18,12 +18,12 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='spacy-entity-linker',
+    name='spacy-canonicalizer',
     version='1.0.1',
     author='Emanuel Gerber',
     author_email='emanuel.j.gerber@gmail.com',
-    packages=['spacy_entity_linker'],
-    url='https://github.com/egerber/spacy-entity-linker',
+    packages=['spacy_canonicalizer'],
+    url='https://github.com/nu-c3lab/spaCy-canonicalizer',
     license="MIT",
     classifiers=["Environment :: Console",
                  "Intended Audience :: Developers",
@@ -33,7 +33,7 @@ setup(
                  "Programming Language :: Python",
                  "Programming Language :: Python :: 3.6"
                  ],
-    description='Linked Entity Pipeline for spaCy',
+    description='Entity and Relationship Caninicalization Pipeline for spaCy',
     long_description=long_description,
     long_description_content_type="text/markdown",
     zip_safe=True,
@@ -42,6 +42,6 @@ setup(
         'numpy>=1.0.0'
     ],
     entry_points={
-        'spacy_factories': 'entityLinker = spacy_entity_linker.EntityLinker:EntityLinker'
+        'spacy_factories': 'entityLinker = spacy_canonicalizer.EntityLinker:EntityLinker'
     }
 )

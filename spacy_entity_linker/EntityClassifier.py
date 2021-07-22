@@ -26,6 +26,10 @@ class EntityClassifier:
         priors = [entity.get_prior() for entity in entities]
         return entities[np.argmax(priors)]
 
+    def _select_min_id(self, entities):
+        ids = [entity.get_id() for entity in entities]
+        return entities[np.argmin(ids)]
+
     def _get_casing_difference(self, word1, original):
         difference = 0
         for w1, w2 in zip(word1, original):
@@ -46,4 +50,4 @@ class EntityClassifier:
         filtered_by_length = self._filter_max_length(entities)
         filtered_by_casing = self._filter_most_similar(filtered_by_length)
 
-        return self._select_max_prior(filtered_by_casing)
+        return self._select_min_id(filtered_by_casing)
