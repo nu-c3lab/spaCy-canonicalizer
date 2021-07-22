@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Spacy Canocicalizer is a pipeline for spaCy that performs Linked Entity Extraction with Wikidata on a given Document.
+Spacy Canonicalizer is a pipeline for spaCy that performs Linked Entity Extraction with Wikidata on a given Document.
 The Entity Linking System operates by matching potential candidates from each sentence
 (subject, object, prepositional phrase, compounds, etc.) to aliases from Wikidata. The package allows to easily find the
 category behind each entity (e.g. "banana" is type "food" OR "Microsoft" is type "company"). It can is therefore useful
