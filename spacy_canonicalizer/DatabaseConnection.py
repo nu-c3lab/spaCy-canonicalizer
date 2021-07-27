@@ -174,12 +174,13 @@ class WikidataQueryController:
 
         c = self.conn.cursor()
 
-        query = "SELECT object_id, property_id from item_relationship where subject_id=%s and property_id IN (%s)"
+        query = f"SELECT object_id, property_id from item_relationship where subject_id=%s and property_id IN ({','.join([str(prop) for prop in properties])})"
 
         # set value for current item in order to prevent infinite recursion
         self._add_to_cache("chain", (item_id, max_depth), [])
+        c.execute(query, [item_id])
 
-        for target_item in c.execute(query, [item_id, ','.join([str(prop) for prop in properties])]):
+        for target_item in c.fetchall():
 
             chain_ids = [el[0] for el in chain]
 
