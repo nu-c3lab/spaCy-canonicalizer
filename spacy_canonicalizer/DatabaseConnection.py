@@ -84,10 +84,10 @@ class WikidataQueryController:
         return fetched_rows
 
     def get_instances_of(self, item_id, properties=[P_INSTANCE_OF, P_SUBCLASS], count=1000):
-        query = "select subject_id from item_relationship where object_id = %s and property_id in (%s) LIMIT %s"
+        query = f"select subject_id from item_relationship where object_id = %s and property_id in ({','.join([str(prop) for prop in properties])}) LIMIT %s"
 
         c = self.conn.cursor()
-        c.execute(query, [item_id, ','.join([str(prop) for prop in properties]), count])
+        c.execute(query, [item_id, count])
 
         res = c.fetchall()
 
