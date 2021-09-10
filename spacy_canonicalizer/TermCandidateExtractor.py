@@ -2,8 +2,9 @@ from .TermCandidate import TermCandidate
 
 
 class TermCandidateExtractor:
-    def __init__(self, doc):
+    def __init__(self, doc, single_term):
         self.doc = doc
+        self.single_term = single_term
 
     def __iter__(self):
         for sent in self.doc.sents:
@@ -11,6 +12,7 @@ class TermCandidateExtractor:
                 yield candidate
 
     def _get_candidates_in_sent(self, sent, doc):
+
         root = list(filter(lambda token: token.dep_ == "ROOT", sent))[0]
 
         excluded_children = []
@@ -46,6 +48,10 @@ class TermCandidateExtractor:
                 if child in excluded_children:
                     continue
                 get_candidates(child, doc)
+
+        if self.single_term:
+            # First check to see if the term itself can be canonicalized without parsing through the sentence
+            candidates.append(TermCandidate(sent))
 
         get_candidates(root, doc)
 

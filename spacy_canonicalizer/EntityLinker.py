@@ -12,8 +12,8 @@ class EntityLinker:
         Doc.set_extension("linkedEntities", default=EntityCollection(), force=True)
         Span.set_extension("linkedEntities", default=None, force=True)
 
-    def __call__(self, doc):
-        tce = TermCandidateExtractor(doc)
+    def __call__(self, doc, **component_cfg):
+        tce = TermCandidateExtractor(doc, component_cfg.get("single_term", False))
         classifier = EntityClassifier()
 
         for sent in doc.sents:
@@ -23,9 +23,10 @@ class EntityLinker:
         for termCandidates in tce:
             entityCandidates = termCandidates.get_entity_candidates()
             if len(entityCandidates) > 0:
-                entity = classifier(entityCandidates)
-                entity.span.sent._.linkedEntities.append(entity)
-                entities.append(entity)
+                entity = classifier(entityCandidates, component_cfg.get("expected_types", None))
+                if entity:
+                    entity.span.sent._.linkedEntities.append(entity)
+                    entities.append(entity)
 
         doc._.linkedEntities = EntityCollection(entities)
 

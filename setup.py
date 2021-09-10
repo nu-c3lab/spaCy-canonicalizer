@@ -39,7 +39,8 @@ setup(
     zip_safe=True,
     install_requires=[
         'spacy>=3.0.0',
-        'numpy>=1.0.0'
+        'numpy>=1.0.0',
+        'psycopg2'
     ],
     entry_points={
         'spacy_factories': 'entityLinker = spacy_canonicalizer.EntityLinker:EntityLinker'

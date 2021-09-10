@@ -46,8 +46,19 @@ class EntityClassifier:
 
         return [entities[i] for i in min_indices]
 
-    def __call__(self, entities):
+    def _filter_expected_types(self, entities, expected_types):
+        if not expected_types:
+            return entities
+
+        def type_filter(entity, expected_types):
+            entity_types = entity.get_categories(max_depth=10)
+            return any(ex_type["id"] in entity_types for ex_type in expected_types)
+
+        return list(filter(lambda ent: type_filter(ent, expected_types), entities))
+
+    def __call__(self, entities, expected_types=None):
         filtered_by_length = self._filter_max_length(entities)
         filtered_by_casing = self._filter_most_similar(filtered_by_length)
+        filtered_by_expected_type = self._filter_expected_types(filtered_by_casing, expected_types)
 
-        return self._select_min_id(filtered_by_casing)
+        return self._select_min_id(filtered_by_expected_type) if len(filtered_by_expected_type) else None
