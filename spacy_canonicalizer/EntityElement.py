@@ -60,6 +60,9 @@ class EntityElement:
     def is_leaf(self):
         pass
 
+    def get_subclasses(self, max_depth=10):
+        return self.wikidata_instance.get_subclasses(self.identifier, max_depth=max_depth)
+
     def get_categories(self, max_depth=10):
         return self.wikidata_instance.get_categories(self.identifier, max_depth=max_depth)
 

@@ -141,6 +141,12 @@ class WikidataQueryController:
 
         return res.fetchall()
 
+    def get_subclasses(self, item_id, max_depth=10):
+        chain = []
+        edges = []
+        self._append_chain_elements(item_id, 0, chain, edges, max_depth, P_SUBCLASS, traverse_up=False)
+        return [el[0] for el in chain]
+
     def get_categories(self, item_id, max_depth=10):
         chain = []
         edges = []
@@ -159,7 +165,7 @@ class WikidataQueryController:
         self._append_chain_elements(self, item_id, 0, chain, edges)
         return edges
 
-    def _append_chain_elements(self, item_id, level=0, chain=[], edges=[], max_depth=10, property=P_INSTANCE_OF):
+    def _append_chain_elements(self, item_id, level=0, chain=[], edges=[], max_depth=10, property=P_INSTANCE_OF, traverse_up=True):
         properties = property
         if type(property) != list:
             properties = [property]
@@ -174,7 +180,8 @@ class WikidataQueryController:
 
         c = self.conn.cursor()
 
-        query = f"SELECT object_id, property_id from item_relationship where subject_id=%s and property_id IN ({','.join([str(prop) for prop in properties])})"
+        query = f"SELECT object_id, property_id from item_relationship where subject_id=%s and property_id IN ({','.join([str(prop) for prop in properties])})" if traverse_up \
+                else f"SELECT subject_id, property_id from item_relationship where object_id=%s and property_id IN ({','.join([str(prop) for prop in properties])})"
 
         # set value for current item in order to prevent infinite recursion
         self._add_to_cache("chain", (item_id, max_depth), [])
