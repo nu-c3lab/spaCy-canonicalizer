@@ -28,13 +28,13 @@ class TermCandidateExtractor:
                     start_index = min(node.i, child.i)
                     end_index = max(node.i, child.i)
 
-                    if child.dep_ == "compound" or child.dep_ == "amod":
+                    if child.dep_ == "compound" or child.dep_.endswith('mod'): #child.dep_ == "amod":
                         subtree_tokens = list(child.subtree)
                         if all([c.dep_ == "compound" for c in subtree_tokens]):
                             start_index = min([c.i for c in subtree_tokens])
                         term_candidates.append(doc[start_index:end_index + 1])
 
-                        if not child.dep_ == "amod":
+                        if not child.dep_.endswith('mod'):
                             term_candidates.append(doc[start_index:start_index + 1])
                         excluded_children.append(child)
 
