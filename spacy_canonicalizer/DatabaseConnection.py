@@ -162,7 +162,7 @@ class WikidataQueryController:
     def get_recursive_edges(self, item_id):
         chain = []
         edges = []
-        self._append_chain_elements(self, item_id, 0, chain, edges)
+        self._append_chain_elements(item_id, 0, chain, edges)
         return edges
 
     def _append_chain_elements(self, item_id, level=0, chain=[], edges=[], max_depth=10, property=P_INSTANCE_OF, traverse_up=True):
@@ -196,7 +196,8 @@ class WikidataQueryController:
                 edges.append((item_id, target_item[0], target_item[1]))
                 self._append_chain_elements(target_item[0], level=level + 1, chain=chain, edges=edges,
                                             max_depth=max_depth,
-                                            property=property)
+                                            property=property,
+                                            traverse_up=traverse_up)
 
         self._add_to_cache("chain", (item_id, max_depth), chain)
 
