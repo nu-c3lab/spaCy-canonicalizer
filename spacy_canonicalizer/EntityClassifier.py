@@ -26,9 +26,15 @@ class EntityClassifier:
         priors = [entity.get_prior() for entity in entities]
         return entities[np.argmax(priors)]
 
-    def _select_min_id(self, entities):
-        ids = [entity.get_id() for entity in entities]
-        return entities[np.argmin(ids)]
+    def _select_min_id(self, entities, num):
+        # ids = [entity.get_id() for entity in entities]
+        # return entities[np.argmin(ids)]
+        best_entities = []
+        for i in range(min(num, len(entities))):
+            best_ent = min(entities, key=lambda ent: ent.get_id())
+            best_entities.append(best_ent)
+            entities.remove(best_ent)
+        return best_entities
 
     def _get_casing_difference(self, word1, original):
         difference = 0
@@ -61,4 +67,4 @@ class EntityClassifier:
         filtered_by_casing = self._filter_most_similar(filtered_by_length)
         filtered_by_expected_type = self._filter_expected_types(filtered_by_casing, expected_types)
 
-        return self._select_min_id(filtered_by_expected_type) if len(filtered_by_expected_type) else None
+        return self._select_min_id(filtered_by_expected_type, 2) if len(filtered_by_expected_type) else [] # Instead of using a fixed number here, probably want to use some sort of proximity metric

@@ -23,10 +23,11 @@ class EntityLinker:
         for termCandidates in tce:
             entityCandidates = termCandidates.get_entity_candidates()
             if len(entityCandidates) > 0:
-                entity = classifier(entityCandidates, component_cfg.get("expected_types", None))
-                if entity:
-                    entity.span.sent._.linkedEntities.append(entity)
-                    entities.append(entity)
+                for entity in classifier(entityCandidates, component_cfg.get("expected_types", None)):
+                    if entity.get_id() not in map(lambda ent: ent.get_id(), entity.span.sent._.linkedEntities.entities):
+                        entity.span.sent._.linkedEntities.append(entity)
+                    if entity.get_id() not in map(lambda ent: ent.get_id(), entities):
+                        entities.append(entity)
 
         doc._.linkedEntities = EntityCollection(entities)
 
