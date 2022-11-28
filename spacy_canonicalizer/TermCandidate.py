@@ -4,14 +4,17 @@ from .DatabaseConnection import get_wikidata_instance
 
 
 class TermCandidate:
-    def __init__(self, span):
-        self.variations = [span]
+    def __init__(self, span=None):
+        self.variations = (span if type(span) == list else [span]) if span else []
 
     def pretty_print(self):
         print("Term Candidates are [{}]".format(self))
 
     def append(self, span):
         self.variations.append(span)
+
+    def extend(self, spans):
+        self.variations.extend(spans)
 
     def has_plural(self, variation):
         return any([t.tag_ == "NNS" for t in variation])

@@ -19,9 +19,9 @@ with open("README.md", "r") as fh:
 
 setup(
     name='spacy-canonicalizer',
-    version='1.0.1',
-    author='Emanuel Gerber',
-    author_email='emanuel.j.gerber@gmail.com',
+    version='1.0.2',
+    author='C3 Lab',
+    author_email='cameron.barrie@u.northwestern.edu',
     packages=['spacy_canonicalizer'],
     url='https://github.com/nu-c3lab/spaCy-canonicalizer',
     license="MIT",
@@ -40,7 +40,8 @@ setup(
     install_requires=[
         'spacy>=3.0.0',
         'numpy>=1.0.0',
-        'psycopg2'
+        'psycopg2',
+        'stanza'
     ],
     entry_points={
         'spacy_factories': 'entityLinker = spacy_canonicalizer.EntityLinker:EntityLinker'

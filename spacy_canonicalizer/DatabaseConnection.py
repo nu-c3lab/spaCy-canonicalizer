@@ -15,18 +15,18 @@ chain_cache = {}
 wikidata_instance = None
 
 
-def get_wikidata_instance():
+def get_wikidata_instance(path=None):
     global wikidata_instance
 
     if wikidata_instance is None:
-        wikidata_instance = WikidataQueryController()
+        wikidata_instance = WikidataQueryController(path)
 
     return wikidata_instance
 
 
 class WikidataQueryController:
 
-    def __init__(self):
+    def __init__(self, path=None):
         self.conn = None
 
         self.cache = {
@@ -35,7 +35,7 @@ class WikidataQueryController:
             "name": {}
         }
 
-        self.init_database_connection(self._load_creds())
+        self.init_database_connection(path or self._load_creds())
 
     def _get_cached_value(self, cache_type, key):
         return self.cache[cache_type][key]
@@ -72,7 +72,7 @@ class WikidataQueryController:
         if self._is_cached("entity", alias):
             return self._get_cached_value("entity", alias).copy()
 
-        query_alias = """select i.id, i.name, i.description, a.alias
+        query_alias = """select i.id, i.name, i.description, i.inlinks, a.alias
             from item_alias_view a
             left join item i on a.item_id = i.id
             where a.lowercase_alias = %s"""
